@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mcp-server.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "mcp-server.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "mcp-server.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: sse
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: MCP_SERVER_NAME
+              value: {{ .Values.env.mcpServerName | quote }}
+          volumeMounts:
+            - name: code-volume
+              mountPath: "/app/user_code"
+              readOnly: true
+            {{- if .Values.storage.enabled }}
+            - name: data-volume
+              mountPath: {{ .Values.storage.mountPath }}
+            {{- end }}
+      volumes:
+        - name: code-volume
+          configMap:
+            name: mcp-user-code
+            optional: true
+        {{- if .Values.storage.enabled }}
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "mcp-server.fullname" . }}-pvc
+        {{- end }}

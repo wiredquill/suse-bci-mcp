@@ -1,0 +1,38 @@
+rancher_min_version: 2.6.0
+questions:
+- variable: service.type
+  label: "Service Type"
+  description: "How should this MCP server be exposed to the network?"
+  type: enum
+  options:
+    - "ClusterIP"
+    - "NodePort"
+    - "LoadBalancer"
+  default: "ClusterIP"
+  group: "Networking"
+
+- variable: storage.enabled
+  label: "Enable Persistent Storage"
+  type: boolean
+  default: false
+  group: "Storage"
+
+- variable: storage.storageClass
+  label: "Storage Class"
+  type: storageclass
+  default: ""
+  group: "Storage"
+  show_if: "storage.enabled=true"
+
+- variable: storage.size
+  label: "Volume Size"
+  type: string
+  default: "1Gi"
+  group: "Storage"
+  show_if: "storage.enabled=true"
+
+- variable: env.mcpServerName
+  label: "MCP Server Name"
+  type: string
+  default: "Suse-MCP-Agent"
+  group: "Application Settings"

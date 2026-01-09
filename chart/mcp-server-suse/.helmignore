@@ -1,0 +1,6 @@
+.DS_Store
+.git/
+.gitignore
+*.swp
+weather_mcp.py
+user_mcp.py
