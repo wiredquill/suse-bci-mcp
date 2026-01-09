@@ -1,0 +1,49 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'chart/**' # Only run when chart files change
+
+permissions:
+  contents: write # Required to create GitHub Releases
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      # 1. Verify the chart is valid
+      - name: Lint Chart
+        run: helm lint chart/mcp-server-suse
+
+      # 2. Package the chart into a .tgz file
+      - name: Package Chart
+        run: helm package chart/mcp-server-suse
+
+      # 3. Create a GitHub Release and upload the .tgz
+      # This uses the "cr" (Chart Releaser) tool standard in the Helm community
+      - name: Run Chart Releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: chart
+          # This automatically updates index.yaml on your gh-pages branch
+          # making your repo a valid Helm Repository for Rancher.
